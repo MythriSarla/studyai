@@ -1,0 +1,44 @@
+# ===== Environment & Secrets =====
+.env
+.env.local
+.env.*.local
+backend/app/config/firebase-service-account.json
+backend/.env
+frontend/.env
+
+# ===== Python (Backend) =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+backend/.venv/
+*.egg-info/
+.pytest_cache/
+
+# ===== Node / React (Frontend) =====
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== Uploaded study materials (user files, never commit) =====
+backend/uploads/
+backend/app/uploads/
+
+# ===== OS Files =====
+.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+
+# ===== Logs =====
+*.log
+logs/
