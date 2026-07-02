@@ -1,4 +1,15 @@
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+
 function Navbar() {
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
   return (
     <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
       <div className="flex items-center gap-2">
@@ -25,9 +36,12 @@ function Navbar() {
 
       <div className="flex items-center gap-4">
         <button className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-semibold">
-          U
+          {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
         </button>
-        <button className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        <button
+          onClick={handleLogout}
+          className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
+        >
           Logout
         </button>
       </div>
