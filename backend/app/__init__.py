@@ -15,6 +15,9 @@ def create_app():
 
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 
+    from app.config.firebase_config import initialize_firebase
+    initialize_firebase()
+
     @app.route("/api/health", methods=["GET"])
     def health_check():
         return {"status": "ok", "message": "StudyAI backend is running"}, 200

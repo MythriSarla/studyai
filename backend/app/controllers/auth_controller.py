@@ -1,11 +1,8 @@
 from flask import jsonify
 from flask_jwt_extended import create_access_token
-from werkzeug.security import generate_password_hash, check_password_hash
+from firebase_admin import auth as firebase_auth, firestore
 
-# TEMPORARY in-memory user store.
-# This will be replaced with Firebase Firestore in Phase 4.
-# Structure: { "email": { "password_hash": "...", "name": "..." } }
-fake_users_db = {}
+db = firestore.client()
 
 
 def signup_user(data):
@@ -16,23 +13,40 @@ def signup_user(data):
     if not email or not password or not name:
         return jsonify({"error": "Name, email, and password are required"}), 400
 
-    if email in fake_users_db:
-        return jsonify({"error": "An account with this email already exists"}), 409
-
     if len(password) < 6:
         return jsonify({"error": "Password must be at least 6 characters"}), 400
 
-    fake_users_db[email] = {
-        "password_hash": generate_password_hash(password),
-        "name": name,
-    }
+    try:
+        # Create user in Firebase Authentication
+        firebase_user = firebase_auth.create_user(
+            email=email,
+            password=password,
+            display_name=name
+        )
 
-    access_token = create_access_token(identity=email)
-    return jsonify({
-        "message": "Account created successfully",
-        "access_token": access_token,
-        "user": {"email": email, "name": name}
-    }), 201
+        # Store additional user info in Firestore
+        db.collection("users").document(firebase_user.uid).set({
+            "uid": firebase_user.uid,
+            "email": email,
+            "name": name,
+            "created_at": firestore.SERVER_TIMESTAMP
+        })
+
+        access_token = create_access_token(identity=firebase_user.uid)
+        return jsonify({
+            "message": "Account created successfully",
+            "access_token": access_token,
+            "user": {
+                "uid": firebase_user.uid,
+                "email": email,
+                "name": name
+            }
+        }), 201
+
+    except firebase_auth.EmailAlreadyExistsError:
+        return jsonify({"error": "An account with this email already exists"}), 409
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 def login_user(data):
@@ -42,13 +56,27 @@ def login_user(data):
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
-    user = fake_users_db.get(email)
-    if not user or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "Invalid email or password"}), 401
+    try:
+        # Verify user exists in Firebase Auth
+        firebase_user = firebase_auth.get_user_by_email(email)
 
-    access_token = create_access_token(identity=email)
-    return jsonify({
-        "message": "Login successful",
-        "access_token": access_token,
-        "user": {"email": email, "name": user["name"]}
-    }), 200
+        # Get user profile from Firestore
+        user_doc = db.collection("users").document(firebase_user.uid).get()
+        user_data = user_doc.to_dict() if user_doc.exists else {}
+        name = user_data.get("name", firebase_user.display_name or "")
+
+        access_token = create_access_token(identity=firebase_user.uid)
+        return jsonify({
+            "message": "Login successful",
+            "access_token": access_token,
+            "user": {
+                "uid": firebase_user.uid,
+                "email": email,
+                "name": name
+            }
+        }), 200
+
+    except firebase_auth.UserNotFoundError:
+        return jsonify({"error": "Invalid email or password"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
