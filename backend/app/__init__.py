@@ -11,6 +11,7 @@ def create_app():
     app = Flask(__name__)
 
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
     JWTManager(app)
 
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
@@ -23,6 +24,8 @@ def create_app():
         return {"status": "ok", "message": "StudyAI backend is running"}, 200
 
     from app.routes.auth_routes import auth_bp
+    from app.routes.upload_routes import upload_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(upload_bp)
 
     return app
