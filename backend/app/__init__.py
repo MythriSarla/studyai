@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -11,10 +12,16 @@ def create_app():
     app = Flask(__name__)
 
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
     JWTManager(app)
 
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+    CORS(app,
+         resources={r"/api/*": {"origins": "http://localhost:5173"}},
+         allow_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         supports_credentials=True
+    )
 
     from app.config.firebase_config import initialize_firebase
     initialize_firebase()
