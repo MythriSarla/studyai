@@ -17,10 +17,10 @@ def create_app():
     JWTManager(app)
 
     CORS(app,
-         resources={r"/api/*": {"origins": "http://localhost:5173"}},
+         resources={r"/api/*": {"origins": "*"}},
          allow_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         supports_credentials=True
+         supports_credentials=False
     )
 
     from app.config.firebase_config import initialize_firebase
