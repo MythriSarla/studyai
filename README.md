@@ -40,6 +40,18 @@ This repository contains the **complete Software Development Lifecycle (SDLC)** 
 - 🃏 Flashcards
 - 📝 Quiz Generator
 - 📊 Analytics Dashboard
+- ## Demo Video
+
+https://github.com/user-attachments/assets/e76f43ff-c836-4f7f-b325-228210ef1c7d
+
+
+
+
+- 
+
+
+
+
 
 ---
 
